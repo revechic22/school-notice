@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>가정통신문 📅 캘린더</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap');
+
+:root {
+  --bg: #F5F3FF;
+  --card: #FFFFFF;
+  --primary: #7C3AED;
+  --primary-lt: #EDE9FE;
+  --yellow: #F59E0B;
+  --green: #10B981;
+  --red: #EF4444;
+  --kakao: #FEE500;
+  --kakao-text: #191919;
+  --text: #1F2937;
+  --muted: #6B7280;
+  --border: #E5E7EB;
+  --sh: 0 2px 12px rgba(124,58,237,0.10);
+  --sh-lg: 0 8px 28px rgba(124,58,237,0.18);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── 상단 바 ── */
+.topbar {
+  background: var(--primary);
+  color: white;
+  padding: 14px 18px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(124,58,237,0.35);
+}
+.topbar-title { font-size: 16px; font-weight: 900; }
+.topbar-title span { font-size: 11px; display: block; opacity: 0.7; margin-top: 1px; font-weight: 400; }
+
+/* ── 유저 칩 ── */
+.user-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.18); border-radius: 20px;
+  padding: 4px 10px 4px 4px; cursor: pointer;
+  border: 1.5px solid rgba(255,255,255,0.25);
+  transition: background 0.15s;
+}
+.user-chip:hover { background: rgba(255,255,255,0.28); }
+.user-chip img { width: 26px; height: 26px; border-radius: 50%; }
+.user-chip-name { font-size: 12px; font-weight: 600; max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.login-btn-mini {
+  background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.35);
+  color: white; border-radius: 20px; padding: 6px 14px;
+  font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+  transition: background 0.15s;
+}
+.login-btn-mini:hover { background: rgba(255,255,255,0.3); }
+
+.content { padding: 16px 16px 120px; max-width: 480px; margin: 0 auto; }
+
+/* ── 상태 카드 ── */
+.status-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.status-card {
+  flex: 1; background: var(--card); border-radius: 14px;
+  padding: 12px 14px; box-shadow: var(--sh);
+  display: flex; align-items: center; gap: 10px;
+}
+.status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.status-dot.on { background: var(--green); box-shadow: 0 0 0 3px rgba(16,185,129,0.2); }
+.status-dot.off { background: #D1D5DB; }
+.status-label { font-size: 12px; color: var(--muted); }
+.status-val { font-size: 13px; font-weight: 700; margin-top: 1px; }
+
+/* ── 로그인 섹션 ── */
+.login-section { margin-bottom: 20px; }
+.google-login-btn {
+  width: 100%; background: white; border: 2px solid var(--border);
+  border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.2s; box-shadow: var(--sh); color: var(--text);
+  margin-bottom: 10px;
+}
+.google-login-btn:hover { border-color: var(--primary); box-shadow: var(--sh-lg); transform: translateY(-1px); }
+.kakao-login-btn {
+  width: 100%; background: var(--kakao); border: none;
+  border-radius: 14px; padding: 14px; font-size: 15px; font-weight: 700;
+  font-family: inherit; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: all 0.2s; box-shadow: 0 2px 12px rgba(254,229,0,0.4);
+  color: var(--kakao-text);
+}
+.kakao-login-btn:hover { filter: brightness(0.96); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(254,229,0,0.5); }
+.kakao-login-btn svg { flex-shrink: 0; }
+
+/* ── 아내 설정 ── */
+.wife-setup {
+  background: var(--card); border-radius: 14px;
+  padding: 14px 16px; box-shadow: var(--sh);
+  margin-bottom: 20px; display: none;
+}
+.wife-setup.active { display: block; }
+.wife-setup h3 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.friend-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; border-radius: 10px; cursor: pointer;
+  transition: background 0.15s;
+}
+.friend-item:hover { background: var(--bg); }
+.friend-item img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.friend-item-name { font-size: 14px; font-weight: 600; flex: 1; }
+.friend-select-btn {
+  background: var(--primary-lt); color: var(--primary);
+  border: none; border-radius: 8px; padding: 5px 12px;
+  font-size: 12px; font-weight: 700; font-family: inherit; cursor: pointer;
+}
+.wife-badge {
+  background: var(--kakao); color: var(--kakao-text);
+  border-radius: 8px; padding: 3px 8px; font-size: 11px; font-weight: 700;
+}
+
+/* ── 업로드 ── */
+.upload-zone {
+  background: var(--card); border: 2.5px dashed #C4B5FD;
+  border-radius: 18px; padding: 30px 20px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 14px;
+}
+.upload-zone:hover, .upload-zone.over { border-color: var(--primary); background: var(--primary-lt); }
+.upload-zone input { display: none; }
+.upload-icon { font-size: 38px; margin-bottom: 8px; }
+.upload-zone h2 { font-size: 16px; font-weight: 700; margin-bottom: 5px; }
+.upload-zone p { color: var(--muted); font-size: 13px; }
+.preview-img { max-width: 100%; border-radius: 10px; margin: 12px auto 0; display: block; max-height: 180px; object-fit: contain; }
+
+/* ── 분석 버튼 ── */
+.btn-analyze {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--primary), #9333EA);
+  color: white; border: none; border-radius: 14px;
+  font-size: 16px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(124,58,237,0.35);
+  margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-analyze:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(124,58,237,0.45); }
+.btn-analyze:disabled { background: #D1D5DB; box-shadow: none; cursor: not-allowed; transform: none; }
+
+/* ── 로딩 ── */
+.loading { text-align: center; padding: 40px; display: none; }
+.loading.on { display: block; animation: fadeIn 0.3s; }
+.spinner {
+  width: 42px; height: 42px; margin: 0 auto 14px;
+  border: 4px solid var(--primary-lt);
+  border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.75s linear infinite;
+}
+.loading p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+/* ── 결과 ── */
+.results { display: none; }
+.results.on { display: block; animation: fadeIn 0.4s; }
+.section-hd {
+  font-size: 15px; font-weight: 700; margin: 0 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-hd::after { content:''; flex:1; height:2px; background: var(--border); border-radius:2px; }
+.select-all-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--muted); margin-bottom: 8px; cursor: pointer;
+}
+.select-all-row input { accent-color: var(--primary); width:15px; height:15px; cursor:pointer; }
+
+/* ── 이벤트 카드 ── */
+.ev-card {
+  background: var(--card); border-radius: 16px; padding: 14px;
+  margin-bottom: 10px; box-shadow: var(--sh);
+  border-left: 4px solid #C4B5FD; position: relative;
+  transition: box-shadow 0.2s;
+}
+.ev-card.has-items { border-left-color: var(--primary); }
+.ev-card-hd { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; padding-right:30px; }
+.ev-date {
+  background: var(--primary-lt); color: var(--primary);
+  border-radius: 8px; padding: 4px 10px;
+  font-size: 12px; font-weight: 700; white-space: nowrap; flex-shrink: 0;
+}
+.ev-title { font-size: 14px; font-weight: 700; line-height: 1.4; }
+.ev-desc { font-size: 12px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+.items-label { font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.items-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.item-tag {
+  background: #FFF7ED; color: #C2410C;
+  border: 1.5px solid #FED7AA; border-radius: 16px;
+  padding: 3px 10px; font-size: 12px; font-weight: 600;
+}
+.ev-cb { position:absolute; top:14px; right:14px; width:20px; height:20px; accent-color:var(--primary); cursor:pointer; }
+
+/* ── 저장 버튼 ── */
+.btn-save {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--green), #059669);
+  color: white; border: none; border-radius: 14px;
+  font-size: 16px; font-weight: 700; font-family: inherit;
+  cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 4px 16px rgba(16,185,129,0.35);
+  margin-top: 16px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-save:hover { transform: translateY(-2px); }
+.btn-save:disabled { background: #D1D5DB; box-shadow: none; cursor: not-allowed; transform: none; }
+
+/* ── 완료 배너 ── */
+.done-banner {
+  background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+  border: 1.5px solid #A7F3D0; border-radius: 16px;
+  padding: 20px; text-align: center; margin-top: 16px; display: none;
+}
+.done-banner.on { display: block; animation: bounceIn 0.4s; }
+.done-banner .big { font-size: 36px; }
+.done-banner h3 { font-size: 16px; font-weight: 900; color: #065F46; margin: 8px 0 4px; }
+.done-banner p { font-size: 13px; color: #047857; }
+
+/* ── 토스트 ── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #1F2937; color: white;
+  padding: 11px 22px; border-radius: 28px;
+  font-size: 13px; font-weight: 600; z-index: 999;
+  transition: transform 0.25s ease; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok { background: var(--green); }
+.toast.err { background: var(--red); }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes bounceIn {
+  0% { transform:scale(0.85); opacity:0; }
+  60% { transform:scale(1.04); }
+  100% { transform:scale(1); opacity:1; }
+}
+</style>
+</head>
+<body>
+
+<!-- 상단 바 -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">📋 가정통신문 → 캘린더</div>
+    <span style="font-size:11px;opacity:0.65">사진 한 장으로 준비물 자동 저장</span>
+  </div>
+  <div id="userArea">
+    <button class="login-btn-mini" onclick="startGoogleLogin()">구글 로그인</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- 상태 카드 -->
+  <div class="status-row">
+    <div class="status-card">
+      <div class="status-dot" id="gDot"></div>
+      <div>
+        <div class="status-label">구글 캘린더</div>
+        <div class="status-val" id="gStatus">미연결</div>
+      </div>
+    </div>
+    <div class="status-card">
+      <div class="status-dot" id="kDot"></div>
+      <div>
+        <div class="status-label">카카오 알림</div>
+        <div class="status-val" id="kStatus">미연결</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 로그인 섹션 -->
+  <div class="login-section" id="loginSection">
+    <button class="google-login-btn" id="googleLoginBtn" onclick="startGoogleLogin()">
+      <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Google로 로그인 (캘린더 저장용)
+    </button>
+    <button class="kakao-login-btn" id="kakaoLoginBtn" onclick="startKakaoLogin()">
+      <svg width="20" height="20" viewBox="0 0 40 40"><path fill="#191919" d="M20 4C11.163 4 4 9.82 4 17c0 4.637 2.96 8.703 7.438 11.118L9.5 35l7.063-4.688C17.637 30.427 18.806 30.5 20 30.5c8.837 0 16-5.82 16-13s-7.163-13-16-13z"/></svg>
+      카카오로 연결 (알림 수신용)
+    </button>
+  </div>
+
+  <!-- 아내 설정 -->
+  <div class="wife-setup" id="wifeSetup">
+    <h3>💑 알림 받을 가족 선택</h3>
+    <div id="friendList"><p style="color:#aaa;font-size:13px">카카오 친구 목록 불러오는 중...</p></div>
+  </div>
+
+  <!-- 업로드 -->
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <input type="file" id="fileInput" accept="image/*" onchange="onFileSelect(this.files[0])">
+    <div class="upload-icon">📄</div>
+    <h2>가정통신문 사진을 올려주세요</h2>
+    <p>탭하거나 사진을 끌어다 놓으세요</p>
+  </div>
+
+  <button class="btn-analyze" id="btnAnalyze" onclick="analyze()" disabled>
+    🔍 AI로 일정 & 준비물 분석
+  </button>
+
+  <!-- 로딩 -->
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>가정통신문을 읽고 있어요...<br>잠깐만요 🔍</p>
+  </div>
+
+  <!-- 결과 -->
+  <div class="results" id="results">
+    <div class="section-hd">📌 발견된 일정</div>
+    <label class="select-all-row">
+      <input type="checkbox" id="selAll" checked onchange="toggleAll(this.checked)">
+      전체 선택 / 해제
+    </label>
+    <div id="eventList"></div>
+    <button class="btn-save" id="btnSave" onclick="saveAll()">
+      📅 캘린더 저장 + 카톡 알림 등록
+    </button>
+    <div class="done-banner" id="doneBanner">
+      <div class="big">🎉</div>
+      <h3 id="doneMsg">저장 완료!</h3>
+      <p>D-2, D-1에 나와 아내에게 카톡 알림이 자동으로 가요</p>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// 설정 (Vercel 배포 후 실제값으로 교체)
+// ══════════════════════════════════════════
+const CONFIG = {
+  // Google OAuth Client ID (Google Cloud Console에서 발급)
+  GOOGLE_CLIENT_ID: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
+  // 카카오 REST API 키 (kakao developers.kakao.com)
+  KAKAO_REST_API_KEY: 'YOUR_KAKAO_REST_API_KEY',
+  // Vercel 배포 URL (예: https://my-app.vercel.app)
+  APP_URL: window.location.origin,
+};
+
+// ══════════════════════════════════════════
+// 상태
+// ══════════════════════════════════════════
+let imageBase64 = null;
+let parsedEvents = [];
+let googleAccessToken = null;
+let googleUser = null;
+let kakaoConnected = false;
+
+// ══════════════════════════════════════════
+// 초기화
+// ══════════════════════════════════════════
+window.addEventListener('load', () => {
+  // URL 파라미터로 카카오 연결 완료 감지
+  if (location.search.includes('kakao=connected')) {
+    kakaoConnected = true;
+    updateKakaoStatus(true);
+    loadFriends();
+    history.replaceState({}, '', '/');
+    toast('카카오 연결 완료! 아내를 선택해주세요 💬', 'ok');
+  }
+  // Google GIS 로드
+  loadGoogleGIS();
+});
+
+// ══════════════════════════════════════════
+// Google 로그인
+// ══════════════════════════════════════════
+let tokenClient;
+
+function loadGoogleGIS() {
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.onload = initGoogleClient;
+  document.head.appendChild(s);
+}
+
+function initGoogleClient() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.GOOGLE_CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/calendar.events profile email',
+    callback: async (resp) => {
+      if (resp.error) { toast('구글 로그인 실패 😢', 'err'); return; }
+      googleAccessToken = resp.access_token;
+      // 유저 정보 조회
+      const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${googleAccessToken}` }
+      }).then(r => r.json());
+      googleUser = info;
+      updateGoogleStatus(true, info);
+      toast('구글 캘린더 연결 완료 ✅', 'ok');
+    },
+  });
+}
+
+function startGoogleLogin() {
+  if (tokenClient) tokenClient.requestAccessToken();
+  else toast('잠시 후 다시 눌러주세요', 'err');
+}
+
+function updateGoogleStatus(on, user) {
+  document.getElementById('gDot').className = 'status-dot ' + (on ? 'on' : 'off');
+  document.getElementById('gStatus').textContent = on ? (user?.name || '연결됨') : '미연결';
+  if (on && user) {
+    const area = document.getElementById('userArea');
+    area.innerHTML = `
+      <div class="user-chip" onclick="logoutGoogle()" title="로그아웃">
+        ${user.picture ? `<img src="${user.picture}" alt="">` : ''}
+        <span class="user-chip-name">${user.name}</span>
+      </div>`;
+    document.getElementById('googleLoginBtn').style.display = 'none';
+  }
+}
+
+function logoutGoogle() {
+  if (!confirm('구글 로그아웃 할까요?')) return;
+  google.accounts.oauth2.revoke(googleAccessToken);
+  googleAccessToken = null; googleUser = null;
+  updateGoogleStatus(false);
+  document.getElementById('userArea').innerHTML = `<button class="login-btn-mini" onclick="startGoogleLogin()">구글 로그인</button>`;
+  document.getElementById('googleLoginBtn').style.display = '';
+}
+
+// ══════════════════════════════════════════
+// 카카오 로그인
+// ══════════════════════════════════════════
+function startKakaoLogin() {
+  const redirectUri = encodeURIComponent(`${CONFIG.APP_URL}/api/kakao-callback`);
+  const scope = encodeURIComponent('talk_message,friends');
+  const url = `https://kauth.kakao.com/oauth/authorize?client_id=${CONFIG.KAKAO_REST_API_KEY}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}`;
+  window.location.href = url;
+}
+
+function updateKakaoStatus(on) {
+  kakaoConnected = on;
+  document.getElementById('kDot').className = 'status-dot ' + (on ? 'on' : 'off');
+  document.getElementById('kStatus').textContent = on ? '연결됨' : '미연결';
+  if (on) document.getElementById('kakaoLoginBtn').style.display = 'none';
+}
+
+async function loadFriends() {
+  document.getElementById('wifeSetup').classList.add('active');
+  try {
+    const res = await fetch('/api/set-wife');
+    const { friends } = await res.json();
+    const list = document.getElementById('friendList');
+    if (!friends?.length) {
+      list.innerHTML = '<p style="color:#aaa;font-size:13px">친구 목록이 없어요.<br>카카오 앱 설정에서 친구 권한을 확인해주세요.</p>';
+      return;
+    }
+    list.innerHTML = friends.map(f => `
+      <div class="friend-item" onclick="selectWife('${f.uuid}', this)">
+        ${f.profile_thumbnail_image ? `<img src="${f.profile_thumbnail_image}" alt="">` : '<div style="width:36px;height:36px;border-radius:50%;background:#eee;flex-shrink:0"></div>'}
+        <span class="friend-item-name">${f.profile_nickname}</span>
+        <button class="friend-select-btn">아내로 선택</button>
+      </div>
+    `).join('');
+  } catch (e) {
+    document.getElementById('friendList').innerHTML = '<p style="color:#f87171;font-size:13px">친구 목록 로드 실패</p>';
+  }
+}
+
+async function selectWife(uuid, el) {
+  await fetch('/api/set-wife', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ uuid }),
+  });
+  document.querySelectorAll('.friend-item .wife-badge').forEach(b => b.remove());
+  el.querySelector('.friend-select-btn').insertAdjacentHTML('beforebegin', '<span class="wife-badge">알림 대상</span>');
+  toast('아내로 설정 완료! 💕', 'ok');
+}
+
+// ══════════════════════════════════════════
+// 파일 업로드
+// ══════════════════════════════════════════
+function onFileSelect(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    imageBase64 = e.target.result.split(',')[1];
+    const zone = document.getElementById('uploadZone');
+    zone.querySelector('.upload-icon').textContent = '🖼️';
+    zone.querySelector('h2').textContent = file.name;
+    const old = zone.querySelector('.preview-img');
+    if (old) old.remove();
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    img.className = 'preview-img';
+    zone.appendChild(img);
+    document.getElementById('btnAnalyze').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('over'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('over'));
+uz.addEventListener('drop', e => { e.preventDefault(); uz.classList.remove('over'); onFileSelect(e.dataTransfer.files[0]); });
+
+// ══════════════════════════════════════════
+// AI 분석
+// ══════════════════════════════════════════
+async function analyze() {
+  if (!imageBase64) return;
+  document.getElementById('loading').classList.add('on');
+  document.getElementById('results').classList.remove('on');
+  document.getElementById('btnAnalyze').disabled = true;
+
+  const prompt = `이 가정통신문 이미지를 분석해서 날짜별 일정과 준비물을 추출해주세요.
+다음 JSON 형식만 반환하세요 (다른 텍스트 없이, 주석 없이):
+{"events":[{"date":"2026-05-25","title":"일정제목","description":"상세내용","items":["준비물1"],"time":null}]}
+
+=== 준비물 추출 규칙 ===
+1. 기간 준비물: "다음 주 내내", "매일" 등 → 해당 주 등원일(월~금) 전체에 포함 (휴원일 제외)
+2. 복장 안내 = 준비물: "복장", "입고 오세요" 등으로 안내된 항목 전부 items에 포함
+3. 모래놀이 포함 시 → "모래놀이 신발" 자동 추가 (미기재여도)
+4. 준비물 없는 날도 이벤트 포함 (items 빈 배열)
+5. 날짜 YYYY-MM-DD, time은 명시된 경우만 "HH:MM" 아니면 null`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '';
+    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    parsedEvents = parsed.events || [];
+    renderEvents();
+    document.getElementById('loading').classList.remove('on');
+    document.getElementById('results').classList.add('on');
+  } catch (e) {
+    document.getElementById('loading').classList.remove('on');
+    document.getElementById('btnAnalyze').disabled = false;
+    toast('분석 실패 😢 다시 시도해주세요', 'err');
+  }
+}
+
+// ══════════════════════════════════════════
+// 렌더링
+// ══════════════════════════════════════════
+function renderEvents() {
+  const list = document.getElementById('eventList');
+  list.innerHTML = '';
+  if (!parsedEvents.length) {
+    list.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px">일정을 찾지 못했어요</p>';
+    return;
+  }
+  const wd = ['일','월','화','수','목','금','토'];
+  parsedEvents.forEach((ev, i) => {
+    const d = new Date(ev.date);
+    const label = `${d.getMonth()+1}/${d.getDate()}(${wd[d.getDay()]})`;
+    const hasItems = ev.items?.length > 0;
+    const card = document.createElement('div');
+    card.className = `ev-card ${hasItems ? 'has-items' : ''}`;
+    card.innerHTML = `
+      <input type="checkbox" class="ev-cb" data-idx="${i}" checked>
+      <div class="ev-card-hd">
+        <span class="ev-date">${label}</span>
+        <span class="ev-title">${ev.title}</span>
+      </div>
+      ${ev.description ? `<div class="ev-desc">${ev.description}</div>` : ''}
+      ${hasItems ? `
+        <div class="items-label">🎒 준비물</div>
+        <div class="items-list">${ev.items.map(it => `<span class="item-tag">${it}</span>`).join('')}</div>` : ''}
+    `;
+    list.appendChild(card);
+  });
+}
+
+function toggleAll(v) {
+  document.querySelectorAll('.ev-cb').forEach(cb => cb.checked = v);
+}
+
+// ══════════════════════════════════════════
+// 저장
+// ══════════════════════════════════════════
+async function saveAll() {
+  const selected = [...document.querySelectorAll('.ev-cb:checked')]
+    .map(cb => parsedEvents[+cb.dataset.idx]);
+  if (!selected.length) { toast('저장할 일정을 선택해주세요', 'err'); return; }
+  if (!googleAccessToken) { toast('먼저 구글 로그인을 해주세요', 'err'); return; }
+
+  document.getElementById('btnSave').disabled = true;
+
+  try {
+    const res = await fetch('/api/save-events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: selected, googleAccessToken }),
+    });
+    const data = await res.json();
+    const msg = `${data.saved}개 캘린더 저장 완료` +
+      (data.scheduled ? ` · ${data.scheduled}개 알림 예약됨` : '');
+    document.getElementById('doneMsg').textContent = msg;
+    document.getElementById('doneBanner').classList.add('on');
+    toast('완료! 🎉', 'ok');
+  } catch (e) {
+    toast('저장 실패 😢', 'err');
+  } finally {
+    document.getElementById('btnSave').disabled = false;
+  }
+}
+
+// ══════════════════════════════════════════
+// 토스트
+// ══════════════════════════════════════════
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
