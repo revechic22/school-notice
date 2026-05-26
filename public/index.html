@@ -621,6 +621,16 @@ async function saveAll() {
   document.getElementById('btnSave').disabled = true;
 
   try {
+    // 즉시 요약 카톡 발송
+  try {
+    await fetch('/api/send-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: selected }),
+    });
+  } catch (e) {
+    console.error('즉시 카톡 발송 실패:', e.message);
+  }
     const res = await fetch('/api/save-events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
