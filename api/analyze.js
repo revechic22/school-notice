@@ -39,6 +39,7 @@ export default async function handler(req, res) {
     const data = await response.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     const clean = text.replace(/```json|```/g, '').trim();
+    console.log('Gemini 응답:', text);
     const parsed = JSON.parse(clean);
     return res.status(200).json(parsed);
   } catch (e) {
