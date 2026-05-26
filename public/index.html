@@ -378,9 +378,14 @@ if (savedToken && savedUser && savedExpiry && Date.now() < parseInt(savedExpiry)
     localStorage.removeItem('google_token_expiry');
 }
   // URL 파라미터로 카카오 연결 완료 감지
-  if (location.search.includes('kakao=connected')) {
-    kakaoConnected = true;
-    updateKakaoStatus(true);
+  if (localStorage.getItem('kakao_connected') === 'true') {
+      kakaoConnected = true;
+      updateKakaoStatus(true);
+    }
+    if (location.search.includes('kakao=connected')) {
+      kakaoConnected = true;
+      localStorage.setItem('kakao_connected', 'true');
+      updateKakaoStatus(true);
     loadFriends();
     history.replaceState({}, '', '/');
     toast('카카오 연결 완료! 아내를 선택해주세요 💬', 'ok');
@@ -630,15 +635,21 @@ async function saveAll() {
 
   try {
     // 즉시 요약 카톡 발송
-  try {
-    await fetch('/api/send-summary', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ events: selected }),
-    });
-  } catch (e) {
-    console.error('즉시 카톡 발송 실패:', e.message);
-  }
+      try {
+        const kakaoRes = await fetch('/api/send-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ events: selected }),
+        });
+        if (kakaoRes.ok) {
+          toast('카톡 요약 발송 완료 💛', 'ok');
+        } else {
+          const err = await kakaoRes.json();
+          toast(err.error || '카톡 발송 실패 - 카카오 연결 확인', 'err');
+        }
+      } catch (e) {
+        console.error('즉시 카톡 발송 실패:', e.message);
+      }
     const res = await fetch('/api/save-events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
