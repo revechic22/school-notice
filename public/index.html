@@ -364,6 +364,14 @@ let kakaoConnected = false;
 // 초기화
 // ══════════════════════════════════════════
 window.addEventListener('load', () => {
+  // 구글 토큰 복원
+  const savedToken = localStorage.getItem('google_token');
+  const savedUser = localStorage.getItem('google_user');
+  if (savedToken && savedUser) {
+    googleAccessToken = savedToken;
+    googleUser = JSON.parse(savedUser);
+    updateGoogleStatus(true, googleUser);
+  }
   // URL 파라미터로 카카오 연결 완료 감지
   if (location.search.includes('kakao=connected')) {
     kakaoConnected = true;
@@ -395,6 +403,8 @@ function initGoogleClient() {
     callback: async (resp) => {
       if (resp.error) { toast('구글 로그인 실패 😢', 'err'); return; }
       googleAccessToken = resp.access_token;
+      localStorage.setItem('google_token', resp.access_token);
+      localStorage.setItem('google_user', JSON.stringify(info));
       // 유저 정보 조회
       const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${googleAccessToken}` }
