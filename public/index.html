@@ -417,11 +417,7 @@ callback: async (resp) => {
   localStorage.setItem('google_token', resp.access_token);
   localStorage.setItem('google_token_expiry', expiry.toString());
   localStorage.setItem('google_user', JSON.stringify(info));
-      // 유저 정보 조회
-      const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-        headers: { Authorization: `Bearer ${googleAccessToken}` }
-      }).then(r => r.json());
-      googleUser = info;
+  googleUser = info;
       updateGoogleStatus(true, info);
       toast('구글 캘린더 연결 완료 ✅', 'ok');
     },
