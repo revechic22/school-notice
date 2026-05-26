@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { imageBase64 } = req.body;
+  const { imageBase64, imageMimeType } = req.body;
   if (!imageBase64) return res.status(400).json({ error: 'imageBase64 필요' });
 
   const prompt = `이 가정통신문 이미지를 분석해서 날짜별 일정과 준비물을 추출해주세요.
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           contents: [{
             parts: [
-              { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+              { inline_data: { mime_type: imageMimeType || 'image/jpeg', data: imageBase64 } },
               { text: prompt }
             ]
           }],
