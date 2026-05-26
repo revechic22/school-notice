@@ -530,21 +530,12 @@ async function analyze() {
 5. 날짜 YYYY-MM-DD, time은 명시된 경우만 "HH:MM" 아니면 null`;
 
   try {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+const resp = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1500,
-        messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
-          { type: 'text', text: prompt }
-        ]}]
-      })
+      body: JSON.stringify({ imageBase64 }),
     });
-    const data = await resp.json();
-    const text = data.content?.find(b => b.type === 'text')?.text || '';
-    const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
+    const parsed = await resp.json();
     parsedEvents = parsed.events || [];
     renderEvents();
     document.getElementById('loading').classList.remove('on');
