@@ -366,12 +366,17 @@ let kakaoConnected = false;
 window.addEventListener('load', () => {
   // 구글 토큰 복원
   const savedToken = localStorage.getItem('google_token');
-  const savedUser = localStorage.getItem('google_user');
-  if (savedToken && savedUser) {
+const savedUser = localStorage.getItem('google_user');
+const savedExpiry = localStorage.getItem('google_token_expiry');
+if (savedToken && savedUser && savedExpiry && Date.now() < parseInt(savedExpiry)) {
     googleAccessToken = savedToken;
     googleUser = JSON.parse(savedUser);
     updateGoogleStatus(true, googleUser);
-  }
+} else {
+    localStorage.removeItem('google_token');
+    localStorage.removeItem('google_user');
+    localStorage.removeItem('google_token_expiry');
+}
   // URL 파라미터로 카카오 연결 완료 감지
   if (location.search.includes('kakao=connected')) {
     kakaoConnected = true;
@@ -399,12 +404,19 @@ function loadGoogleGIS() {
 function initGoogleClient() {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CONFIG.GOOGLE_CLIENT_ID,
-    scope: 'https://www.googleapis.com/auth/calendar.events profile email',
-    callback: async (resp) => {
-      if (resp.error) { toast('구글 로그인 실패 😢', 'err'); return; }
-      googleAccessToken = resp.access_token;
-      localStorage.setItem('google_token', resp.access_token);
-      localStorage.setItem('google_user', JSON.stringify(info));
+scope: 'https://www.googleapis.com/auth/calendar.events profile email',
+callback: async (resp) => {
+  if (resp.error) { toast('구글 로그인 실패 😢', 'err'); return; }
+  googleAccessToken = resp.access_token;
+  // 유저 정보 조회 먼저
+  const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+    headers: { Authorization: `Bearer ${googleAccessToken}` }
+  }).then(r => r.json());
+  // 그다음 저장
+  const expiry = Date.now() + 3500 * 1000;
+  localStorage.setItem('google_token', resp.access_token);
+  localStorage.setItem('google_token_expiry', expiry.toString());
+  localStorage.setItem('google_user', JSON.stringify(info));
       // 유저 정보 조회
       const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${googleAccessToken}` }
