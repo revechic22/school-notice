@@ -7,14 +7,21 @@ export default async function handler(req, res) {
   const prompt = `이 가정통신문 이미지를 분석해서 날짜별 일정과 준비물을 추출해주세요.
 반드시 아래 형식의 순수 JSON만 반환하세요. 설명이나 마크다운 없이 JSON만요.
 
-{"events":[{"date":"2026-05-25","title":"일정제목","description":"상세내용","items":["준비물1"],"time":null}]}
+{
+  "weekly_notices": ["이번 주 불시 재난대피훈련 예정"],
+  "events": [
+    {"date":"2026-05-25","title":"일정제목","description":"상세내용","items":["준비물1"],"time":null}
+  ]
+}
 
 준비물 추출 규칙:
-1. 기간 준비물: "다음 주 내내", "매일" 등이면 해당 주 등원일 전체에 포함 (휴원일 제외)
-2. 복장 안내 = 준비물: "복장", "입고 오세요" 등 항목 전부 items에 포함
-3. 모래놀이 언급 시 "모래놀이 신발" 자동 추가
-4. 준비물 없는 날도 포함 (items 빈 배열)
-5. 날짜는 YYYY-MM-DD, time은 "HH:MM" 또는 null`;
+1. 기간 준비물: "다음 주 내내", "매일" 등 명시된 것만 해당 주 등원일 전체에 포함
+2. 특정 날짜 준비물: 해당 날짜에만 포함 (예: 26일 언어전달장 → 26일만)
+3. "불시", "예고없이" 등 날짜 미정 공지 → events 아닌 weekly_notices에 추가
+4. 복장 안내 = 준비물: "복장", "입고 오세요" 등 항목 전부 items에 포함
+5. 모래놀이 언급 시 "모래놀이 신발" 자동 추가
+6. 준비물 없는 날도 events에 포함 (items 빈 배열)
+7. 날짜는 YYYY-MM-DD, time은 "HH:MM" 또는 null`;
 
   try {
     const response = await fetch(
