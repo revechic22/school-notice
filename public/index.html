@@ -322,6 +322,7 @@ body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: va
       <input type="checkbox" id="selAll" checked onchange="toggleAll(this.checked)">
       전체 선택 / 해제
     </label>
+    <div id="weeklyNotices" style="display:none;background:#FEF9C3;border:1.5px solid #FDE047;border-radius:14px;padding:12px 16px;margin-bottom:12px;font-size:13px;font-weight:600;color:#854D0E;line-height:1.8"></div>
     <div id="eventList"></div>
     <button class="btn-save" id="btnSave" onclick="saveAll()">
       📅 캘린더 저장 + 카톡 알림 등록
@@ -539,6 +540,7 @@ const resp = await fetch('/api/analyze', {
     });
     const parsed = await resp.json();
     parsedEvents = parsed.events || [];
+    parsedEvents._notices = parsed.weekly_notices || [];
     renderEvents();
     document.getElementById('loading').classList.remove('on');
     document.getElementById('results').classList.add('on');
@@ -555,6 +557,18 @@ const resp = await fetch('/api/analyze', {
 function renderEvents() {
   const list = document.getElementById('eventList');
   list.innerHTML = '';
+
+  // 주간 공지 표시
+  const noticeArea = document.getElementById('weeklyNotices');
+  if (parsedEvents._notices?.length) {
+    noticeArea.innerHTML = parsedEvents._notices.map(n =>
+      `<div style="display:flex;align-items:center;gap:6px">⚠️ ${n}</div>`
+    ).join('');
+    noticeArea.style.display = 'block';
+  } else {
+    noticeArea.style.display = 'none';
+  }
+
   if (!parsedEvents.length) {
     list.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px">일정을 찾지 못했어요</p>';
     return;
