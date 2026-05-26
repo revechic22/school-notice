@@ -353,6 +353,7 @@ const CONFIG = {
 // 상태
 // ══════════════════════════════════════════
 let imageBase64 = null;
+let imageMimeType = 'image/jpeg';
 let parsedEvents = [];
 let googleAccessToken = null;
 let googleUser = null;
@@ -490,6 +491,7 @@ function onFileSelect(file) {
   const reader = new FileReader();
   reader.onload = (e) => {
     imageBase64 = e.target.result.split(',')[1];
+    imageMimeType = file.type || 'image/jpeg';
     const zone = document.getElementById('uploadZone');
     zone.querySelector('.upload-icon').textContent = '🖼️';
     zone.querySelector('h2').textContent = file.name;
@@ -533,7 +535,7 @@ async function analyze() {
 const resp = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64 }),
+      body: JSON.stringify({ imageBase64, imageMimeType }),
     });
     const parsed = await resp.json();
     parsedEvents = parsed.events || [];
