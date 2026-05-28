@@ -1,4 +1,4 @@
-import { refreshKakaoToken, sendToMe, sendToFriend, buildNotifyText } from '../lib/kakao.js';
+const { refreshKakaoToken, sendToMe, sendToFriend, buildNotifyText } = require('../lib/kakao.js');
 
 export default async function handler(req, res) {
     if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}` && 
