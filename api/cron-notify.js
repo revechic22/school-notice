@@ -1,9 +1,10 @@
 import { refreshKakaoToken, sendToMe, sendToFriend, buildNotifyText } from '../lib/kakao.js';
 
 export default async function handler(req, res) {
-    if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`) {
-          return res.status(401).end();
-    }
+    if (req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}` && 
+    req.query.secret !== process.env.CRON_SECRET) {
+    return res.status(401).end();
+  }
 
   const today = toKSTDateString(new Date());
     const d1 = addDays(today, 1);
