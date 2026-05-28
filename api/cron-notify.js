@@ -10,7 +10,8 @@ export default async function handler(req, res) {
     const d1 = addDays(today, 1);
     const d2 = addDays(today, 2);
 
-  const schedule = await kvGet('notify_schedule') || [];
+  const rawSchedule = await kvGet('notify_schedule');
+    const schedule = Array.isArray(rawSchedule) ? rawSchedule : [];
     const targets = schedule.filter((ev) => ev.date === d1 || ev.date === d2);
 
   if (targets.length === 0) {
